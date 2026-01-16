@@ -464,19 +464,31 @@
     </div>
 
     <script>
-      (function(){
-        const current = "<?= page ?>";
-        document.querySelectorAll(".navbtn").forEach(a => a.classList.remove("active"));
-        const map = {
-          newbet: 'a[href*="page=newbet"]',
-          history: 'a[href*="page=history"]',
-          overview: 'a[href*="page=overview"]',
-          calendar: 'a[href*="page=calendar"]'
-        };
-        const el = document.querySelector(map[current] || map.calendar);
-        if(el) el.classList.add("active");
-      })();
-    </script>
+  (function () {
+    // ex: "/calendar.html" -> "calendar.html"
+    let file = (location.pathname.split("/").pop() || "index.html").toLowerCase();
+
+    // au cas où Netlify sert "/"
+    if (file === "") file = "index.html";
+
+    // reset
+    document.querySelectorAll(".navbtn").forEach(a =>
+      a.classList.remove("active")
+    );
+
+    const map = {
+      "index.html": 'a[href$="index.html"]',
+      "newbet.html": 'a[href$="newbet.html"]',
+      "history.html": 'a[href$="history.html"]',
+      "overview.html": 'a[href$="overview.html"]',
+      "calendar.html": 'a[href$="calendar.html"]'
+    };
+
+    const el = document.querySelector(map[file] || map["index.html"]);
+    if (el) el.classList.add("active");
+  })();
+</script>
+
 
     <div class="card">
       <div class="header">
@@ -942,4 +954,5 @@
 </script>
 </body>
 </html>
+
 
