@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arbitrage Tracker — Dashboard</title>
+  <link rel="icon" type="image/jpeg" href="https://p1.hiclipart.com/preview/506/105/70/dollar-icon-fee-icon-design-payment-money-currency-symbol-coin-united-states-dollar-png-clipart.jpg">
+
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --stroke:rgba(255,255,255,.10);
+      --radius:18px;
+      --shadow:0 25px 80px rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(900px 500px at 15% -10%, rgba(59,130,246,.18), transparent 60%),
+        radial-gradient(700px 420px at 90% 0%, rgba(34,197,94,.16), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:20px;
+    }
+    .shell{ width:min(1200px, 100%); margin:0 auto; }
+
+    .topnav{
+      position:sticky; top:14px; z-index:200;
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid var(--stroke);
+      background: rgba(2,6,23,.55);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      margin-bottom:16px;
+    }
+    .brand{display:flex; align-items:center; gap:10px; font-weight:1000; margin-right:auto;}
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background:linear-gradient(90deg, rgba(34,197,94,.95), rgba(59,130,246,.90));
+      box-shadow:0 0 20px rgba(59,130,246,.25);
+    }
+    .navlinks{display:flex; gap:8px; flex-wrap:wrap;}
+    .navbtn{
+      text-decoration:none;
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:900;
+      font-size:13px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .navbtn.active{
+      background: linear-gradient(90deg, rgba(34,197,94,.35), rgba(59,130,246,.30));
+      border-color: rgba(255,255,255,.18);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.25fr .9fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .stack{ display:flex; flex-direction:column; gap:14px; }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .header{
+      padding:16px 18px 12px;
+      border-bottom:1px solid var(--stroke);
+      background: rgba(255,255,255,.03);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    h1{ margin:0; font-size:18px; }
+    .sub{ color: var(--muted); font-weight:900; font-size:12px; }
+
+    .content{ padding:16px 18px 18px; }
+
+    .chips{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .chip{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:1000;
+      cursor:pointer;
+      user-select:none;
+      transition:.12s ease;
+    }
+    .chip:hover{ transform: translateY(-1px); }
+
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 700px){
+      .stats{ grid-template-columns: 1fr; }
+    }
+    .stat{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      padding:12px 12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .stat::before{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(360px 180px at 18% 0%, rgba(148,163,184,.12), transparent 65%);
+      opacity:.95;
+      pointer-events:none;
+    }
+    .stat > *{ position:relative; }
+    .label{
+      color:var(--muted);
+      font-weight:1000;
+      font-size:12px;
+      letter-spacing:.2px;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+    .value{
+      font-weight:1300;
+      font-variant-numeric: tabular-nums;
+      font-size:18px;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      display:flex;
+      gap:8px;
+      align-items:baseline;
+    }
+
+    .valPos{ color: rgba(34,197,94,.95); text-shadow: 0 0 14px rgba(34,197,94,.18); }
+    .valNeg{ color: rgba(239,68,68,.95); text-shadow: 0 0 14px rgba(239,68,68,.18); }
+    .valNeu{ color: #e5e7eb; }
+
+    .sectionTitle{
+      margin:14px 0 10px;
+      font-weight:1200;
+      font-size:13px;
+      color:#cbd5e1;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .list{ display:flex; flex-direction:column; gap:10px; }
+    .row{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      padding:12px 12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .row::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(520px 220px at 18% 0%, var(--g1, rgba(59,130,246,.14)), transparent 65%),
+        radial-gradient(520px 220px at 88% 0%, var(--g2, rgba(34,197,94,.12)), transparent 65%);
+      pointer-events:none;
+      opacity:.65;
+    }
+    .row > *{ position:relative; }
+
+    .rowTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .rowLeft{ display:flex; align-items:center; gap:10px; min-width:240px; }
+    .logo{
+      width:20px;height:20px;border-radius:7px;
+      object-fit:contain;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      padding:2px;
+    }
+    .dotBook{
+      width:10px;height:10px;border-radius:999px;
+      box-shadow:0 0 16px rgba(255,255,255,.10);
+      flex:0 0 auto;
+    }
+    .bookName{ font-weight:1200; }
+    .rowRight{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; align-items:center; }
+    .pill{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1100;
+      font-size:12px;
+      white-space:nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .bar{
+      margin-top:10px;
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      position:relative;
+    }
+    .bar > span{
+      display:block;
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(59,130,246,.55), rgba(34,197,94,.45));
+      box-shadow: 0 0 24px rgba(59,130,246,.18);
+    }
+
+    .alertTitle{ font-weight:1200; }
+    .alertText{ color: rgba(148,163,184,.92); font-weight:900; font-size:12px; line-height:1.25; margin-top:6px; }
+
+    .betTitle{
+      font-weight:1200;
+      font-size:13px;
+      line-height:1.2;
+      margin-bottom:10px;
+    }
+    .betMeta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .smallPills{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+    .status{
+      margin-top:12px;
+      color:rgba(148,163,184,.90);
+      font-weight:900;
+      font-size:12px;
+    }
+
+    /* ===== Micro animations (subtle) ===== */
+    .card, .row, .stat, .navbtn, .chip {
+      transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease, filter .14s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 28px 90px rgba(0,0,0,.62);
+      border-color: rgba(255,255,255,.14);
+    }
+    .stat:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.14);
+      background: rgba(255,255,255,.055);
+    }
+    .row:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.14);
+      background: rgba(255,255,255,.055);
+    }
+    .row:hover::before{ opacity: .85; }
+    .navbtn:hover, .chip:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+    }
+    .pill{
+      transition: transform .14s ease, background .14s ease, border-color .14s ease;
+    }
+    .pill:hover{
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.085);
+      border-color: rgba(255,255,255,.18);
+    }
+    .bar > span{
+      transition: width .25s ease, filter .14s ease;
+    }
+    .row:hover .bar > span{ filter: brightness(1.08); }
+    .value b, .value span, .pill b{
+      transition: transform .14s ease, filter .14s ease;
+    }
+    .stat:hover .value span,
+    .stat:hover .value b{
+      transform: scale(1.02);
+      filter: brightness(1.06);
+    }
+    @media (prefers-reduced-motion: reduce){
+      .card, .row, .stat, .navbtn, .chip, .pill, .bar > span,
+      .value b, .value span{ transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+
+    <div class="topnav">
+      <div class="brand"><span class="dot"></span> Arbitrage Tracker</div>
+      <div class="navlinks">
+            <a class="navbtn" href="<?= baseUrl ?>?page=dashboard">Dashboard</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=newbet">New Bet</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=history">History</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=overview">Overview</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=calendar">Calendar</a>
+      </div>
+    </div>
+<script>
+  (function(){
+    const current = "<?= page ?>"; // injecté par Apps Script
+    document.querySelectorAll(".navbtn").forEach(a => a.classList.remove("active"));
+    const map = {
+      dashboard: 'a[href*="page=dashboard"]',
+      newbet: 'a[href*="page=newbet"]',
+      history: 'a[href*="page=history"]',
+      overview: 'a[href*="page=overview"]',
+      calendar: 'a[href*="page=calendar"]'
+    };
+    const el = document.querySelector(map[current] || map.overview);
+    if(el) el.classList.add("active");
+  })();
+</script>
+    <div class="grid">
+
+      <!-- LEFT -->
+      <div class="card">
+        <div class="header">
+          <div>
+            <h1>Dashboard</h1>
+            <div class="sub" id="subtitle">—</div>
+          </div>
+          <div class="chips">
+            <div class="chip" onclick="loadData()">Refresh</div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="stats">
+            <div class="stat">
+              <div class="label">Open Bets</div>
+              <div class="value" id="openCount">—</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Exposure</div>
+              <div class="value" id="openExposure">—</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Unrealised</div>
+              <div class="value" id="openExpected">—</div>
+            </div>
+          </div>
+
+          <div class="sectionTitle">
+            <span>Today</span>
+            <span class="sub" id="todayLabel">—</span>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="label">Realized</div>
+              <div class="value" id="todayReal">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Unrealised</div>
+              <div class="value" id="todayExp">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Bets</div>
+              <div class="value" id="todayBets">—</div>
+            </div>
+          </div>
+
+          <div class="sectionTitle">
+            <span>This week</span>
+            <span class="sub" id="weekLabel">—</span>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="label">Realized</div>
+              <div class="value" id="weekReal">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Unrealised</div>
+              <div class="value" id="weekExp">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Bets</div>
+              <div class="value" id="weekBets">—</div>
+            </div>
+          </div>
+
+          <div class="sectionTitle">
+            <span>Top books</span>
+            <span class="sub">open exposure</span>
+          </div>
+          <div class="list" id="topBooksList"></div>
+
+          <div class="status" id="status">—</div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="stack">
+
+        <div class="card">
+          <div class="header">
+            <div>
+              <h1>Alerts</h1>
+            </div>
+          </div>
+          <div class="content">
+            <div class="list" id="alertsList"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="header">
+            <div>
+              <h1>Comming Unsetteled bets</h1>
+              <div class="sub">Outcome = N/A</div>
+            </div>
+          </div>
+          <div class="content">
+            <div class="list" id="openBetsList"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  const URL = "https://script.google.com/macros/s/AKfycbzZPu54KZZltHUszIqFMGiOAQAkiOqHzAeDPe82BLXNOFRrNiQThomdzkTtWPncgBlF/exec";
+  const API = URL + "?action=listArbs";
+  const $ = (id)=>document.getElementById(id);
+
+  const BOOKS = {
+    "Stake": { color:"#22c55e", glow:"rgba(34,197,94,.18)", logo:"https://getesports.net/wp-content/uploads/sites/21169/2025/05/stake-logo.png" },
+    "ETHAN-BET365": { color:"#16a34a", glow:"rgba(22,163,74,.18)", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Bet365_Logo.svg/2560px-Bet365_Logo.svg.png" },
+    "Coolbet": { color:"#60a5fa", glow:"rgba(96,165,250,.18)", logo:"https://images.squarespace-cdn.com/content/v1/52000104e4b08f2e358d94a9/1625452239841-S386IV6PRDBAF1A4J2OA/coolbet" },
+    "Leo": { color:"#f59e0b", glow:"rgba(245,158,11,.17)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/54c5ac3b0000ff00057cfb87/0x0.png" },
+    "LeoVegas": { color:"#f59e0b", glow:"rgba(245,158,11,.17)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/54c5ac3b0000ff00057cfb87/0x0.png" },
+    "Pinnacle": { color:"#ef4444", glow:"rgba(239,68,68,.16)", logo:"https://upload.wikimedia.org/wikipedia/en/7/72/Pinnacle_Logo.jpeg" },
+    "SportInteraction": { color:"#a78bfa", glow:"rgba(167,139,250,.16)", logo:"https://play-lh.googleusercontent.com/oiHxBwvYz38cyaW4hyDU61FhBUmUpnm6uHo-qtOAvBGCRtyqZr-3mZrbdLjfrlHe9Ms" },
+    "Betway": { color:"#f97316", glow:"rgba(249,115,22,.16)", logo:"https://upload.wikimedia.org/wikipedia/commons/9/95/Betway_logo.jpg" },
+    "Bet99": { color:"#38bdf8", glow:"rgba(56,189,248,.16)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/616481a7f37ebd001dabc165/0x0.png" },
+    "Betsson": { color:"#f97316", glow:"rgba(249,115,22,.16)", logo:"https://play-lh.googleusercontent.com/8C8pB8E4jrYaQ4erIcquFLzGA7J98mvJxNVklC9B-BGN1zW_BVYWa9VdWzJqrtOaEkps" },
+    "N/A": { color:"#94a3b8", glow:"rgba(148,163,184,.14)", logo:"" }
+  };
+  function bookStyle(name){
+    const s = String(name ?? "").trim();
+    return BOOKS[s] || BOOKS["N/A"];
+  }
+
+  function jsonp(url){
+    return new Promise((resolve, reject)=>{
+      const cb = "cb_" + Math.random().toString(36).slice(2);
+      window[cb] = (data)=>{
+        try{ delete window[cb]; }catch(_){}
+        script.remove();
+        resolve(data);
+      };
+      const script = document.createElement("script");
+      script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+      script.onerror = () => {
+        try{ delete window[cb]; }catch(_){}
+        script.remove();
+        reject(new Error("JSONP load failed"));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  function parseMoneyLoose(v){
+    const s0 = String(v ?? "").trim();
+    if(!s0) return NaN;
+    let s = s0.replace(/[^\d,.\-]/g, "");
+    if (s.includes(",") && !s.includes(".")) s = s.replace(",", ".");
+    if (s.includes(".") && s.includes(",")) s = s.replace(/,/g,"");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function fmtMoneyFR(n){
+    if(!Number.isFinite(n)) return "—";
+    const fixed = n.toFixed(2);
+    let [a,b] = fixed.split(".");
+    a = a.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return `${a},${b}$`;
+  }
+  function clsMoney(n){
+    if(!Number.isFinite(n) || n === 0) return "valNeu";
+    return n > 0 ? "valPos" : "valNeg";
+  }
+
+  function isOutcomeNA(outcome){
+    const o = String(outcome ?? "").trim().toUpperCase();
+    return (o === "" || o === "N/A" || o === "NA");
+  }
+
+  function calcAutoAvg(bet){
+    const b1 = parseMoneyLoose(bet.bet1);
+    const o1 = parseMoneyLoose(bet.odds1);
+    const b2 = parseMoneyLoose(bet.bet2);
+    const o2 = parseMoneyLoose(bet.odds2);
+    if(!Number.isFinite(b1) || !Number.isFinite(o1) || !Number.isFinite(b2) || !Number.isFinite(o2)) return NaN;
+
+    const total = b1 + b2;
+    const p1 = b1 * o1 - total;
+    const p2 = b2 * o2 - total;
+    return (p1 + p2) / 2;
+  }
+
+  function startOfDay(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function startOfWeekMonday(d){
+    const x = startOfDay(d);
+    const dow = (x.getDay() + 6) % 7;
+    x.setDate(x.getDate() - dow);
+    return x;
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
+
+  function renderTopBooks(bookAgg){
+    const entries = Object.entries(bookAgg)
+      .sort((a,b)=> (b[1].openExposure - a[1].openExposure));
+
+    const maxExp = entries.length ? entries[0][1].openExposure : 0;
+
+    const html = entries.slice(0,6).map(([book, v])=>{
+      const bs = bookStyle(book);
+      const pct = maxExp > 0 ? Math.max(2, Math.round((v.openExposure / maxExp) * 100)) : 0;
+
+      return `
+        <div class="row" style="--g1:${bs.glow};--g2:${bs.glow};">
+          <div class="rowTop">
+            <div class="rowLeft">
+              ${bs.logo ? `<img class="logo" src="${bs.logo}" alt="">` : ``}
+              <span class="dotBook" style="background:${bs.color}; box-shadow:0 0 18px ${bs.glow};"></span>
+              <span class="bookName">${escapeHtml(book)}</span>
+            </div>
+            <div class="rowRight">
+              <span class="pill">Open <b>${v.openCount}</b></span>
+              <span class="pill">Exposure <b>${fmtMoneyFR(v.openExposure)}</b></span>
+              <span class="pill">Open P/L <b class="${clsMoney(v.openExpected)}">${fmtMoneyFR(v.openExpected)}</b></span>
+              <span class="pill">Tot. Profit <b class="${clsMoney(v.realized)}">${fmtMoneyFR(v.realized)}</b></span>
+            </div>
+          </div>
+          <div class="bar"><span style="width:${pct}%"></span></div>
+        </div>
+      `;
+    }).join("");
+
+    $("topBooksList").innerHTML = html || `<div class="row"><div class="sub">No data.</div></div>`;
+  }
+
+  function renderAlerts(alerts){
+    const html = alerts.map(a=>`
+      <div class="row" style="--g1: rgba(148,163,184,.14); --g2: rgba(148,163,184,.08); padding:10px 12px;">
+        <div class="alertTitle">${escapeHtml(a.title)}</div>
+        <div class="alertText">${escapeHtml(a.text)}</div>
+      </div>
+    `).join("");
+
+    $("alertsList").innerHTML = html || `<div class="row"><div class="sub">No alerts 🎯</div></div>`;
+  }
+
+  function renderOpenBets(list){
+    const html = list.map(bet=>{
+      const b1 = bookStyle(bet.book1);
+      const b2 = bookStyle(bet.book2);
+      const auto = calcAutoAvg(bet);
+      const exposure = (parseMoneyLoose(bet.bet1) || 0) + (parseMoneyLoose(bet.bet2) || 0);
+
+      const dt = new Date(bet.date);
+      const dateLabel = !Number.isNaN(dt.getTime())
+        ? dt.toLocaleDateString("fr-CA", { month:"short", day:"2-digit" })
+        : "—";
+
+      return `
+        <div class="row" style="--g1:${b1.glow};--g2:${b2.glow};">
+          <div class="betTitle">${escapeHtml(bet.desc || "—")}</div>
+          <div class="betMeta">
+            <div class="smallPills">
+              <span class="pill">${dateLabel}</span>
+              <span class="pill">Row <b>${bet.row}</b></span>
+              <span class="pill">Exp <b class="${clsMoney(auto)}">${fmtMoneyFR(auto)}</b></span>
+              <span class="pill">Combined bet tot. <b>${fmtMoneyFR(exposure)}</b></span>
+            </div>
+            <div class="smallPills">
+              <span class="pill">
+                <span class="dotBook" style="background:${b1.color}; box-shadow:0 0 16px ${b1.glow};"></span>
+                ${escapeHtml(bet.book1 || "—")}
+              </span>
+              <span class="pill">
+                <span class="dotBook" style="background:${b2.color}; box-shadow:0 0 16px ${b2.glow};"></span>
+                ${escapeHtml(bet.book2 || "—")}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    $("openBetsList").innerHTML = html || `<div class="row"><div class="sub">No open bets ✅</div></div>`;
+  }
+
+  async function loadData(){
+    $("status").textContent = "Loading…";
+    $("subtitle").textContent = "Fetching…";
+
+    try{
+      const data = await jsonp(API);
+      if(data && data.error){
+        $("status").textContent = "Error: " + data.error;
+        return;
+      }
+
+      const arr = Array.isArray(data) ? data : [];
+      const now = new Date();
+      const sod = startOfDay(now);
+      const sow = startOfWeekMonday(now);
+      const eod = new Date(sod.getTime() + 24*3600*1000);
+      const eow = new Date(sow.getTime() + 7*24*3600*1000);
+
+      let openCount=0, openExposure=0, openExpected=0;
+      let todayReal=0, todayExp=0, todayBets=0;
+      let weekReal=0, weekExp=0, weekBets=0;
+
+      const bookAgg = {};
+      const staleOpen = [];
+      const openList = [];
+
+      for(const bet of arr){
+        const d = new Date(bet.date);
+        if(Number.isNaN(d.getTime())) continue;
+
+        const outNA = isOutcomeNA(bet.outcome);
+        const b1 = parseMoneyLoose(bet.bet1);
+        const b2 = parseMoneyLoose(bet.bet2);
+        const bet1 = Number.isFinite(b1) ? b1 : 0;
+        const bet2 = Number.isFinite(b2) ? b2 : 0;
+        const exposureAll = bet1 + bet2;
+
+        const auto = calcAutoAvg(bet);
+        const real = parseMoneyLoose(bet.profit);
+
+        // Today / Week totals
+        if (d >= sod && d < eod) {
+          todayBets++;
+          if(outNA){ if(Number.isFinite(auto)) todayExp += auto; }
+          else { if(Number.isFinite(real)) todayReal += real; }
+        }
+        if (d >= sow && d < eow){
+          weekBets++;
+          if(outNA){ if(Number.isFinite(auto)) weekExp += auto; }
+          else { if(Number.isFinite(real)) weekReal += real; }
+        }
+
+        // Open totals (global)
+        if(outNA){
+          openCount++;
+          openExposure += exposureAll;
+          if(Number.isFinite(auto)) openExpected += auto;
+          openList.push(bet);
+
+          const ageDays = Math.floor((sod - startOfDay(d)) / (24*3600*1000));
+          if(ageDays >= 3) staleOpen.push({ ageDays, bet });
+        }
+
+        // Top books aggregation (EXPOSURE = stake really placed on that book)
+        const book1 = String(bet.book1||"").trim();
+        const book2 = String(bet.book2||"").trim();
+        const winner = String(bet.outcome||"").trim();
+
+        for(const book of [book1, book2]){
+          if(!book) continue;
+          if(!bookAgg[book]) bookAgg[book] = { openCount:0, openExposure:0, openExpected:0, realized:0 };
+        }
+
+        if(outNA){
+          if(book1 && bookAgg[book1]){
+            bookAgg[book1].openCount += 1;
+            bookAgg[book1].openExposure += bet1;          // ✅ stake on book1
+            if(Number.isFinite(auto)) bookAgg[book1].openExpected += auto/2;
+          }
+          if(book2 && bookAgg[book2]){
+            bookAgg[book2].openCount += 1;
+            bookAgg[book2].openExposure += bet2;          // ✅ stake on book2
+            if(Number.isFinite(auto)) bookAgg[book2].openExpected += auto/2;
+          }
+        } else {
+          if(winner && bookAgg[winner] && Number.isFinite(real)){
+            bookAgg[winner].realized += real;             // ✅ 100% to outcome winner
+          }
+        }
+      }
+
+      $("subtitle").textContent = "Live snapshot";
+      $("openCount").innerHTML = `<span class="valNeu">${openCount}</span>`;
+      $("openExposure").innerHTML = `<span class="valNeu">${fmtMoneyFR(openExposure)}</span>`;
+      $("openExpected").innerHTML = `<span class="${clsMoney(openExpected)}">${fmtMoneyFR(openExpected)}</span>`;
+
+      $("todayLabel").textContent = now.toLocaleDateString("fr-CA", { year:"numeric", month:"short", day:"2-digit" });
+      $("todayReal").innerHTML = `<span class="${clsMoney(todayReal)}">${fmtMoneyFR(todayReal)}</span>`;
+      $("todayExp").innerHTML = `<span class="${clsMoney(todayExp)}">${fmtMoneyFR(todayExp)}</span>`;
+      $("todayBets").innerHTML = `<span class="valNeu">${todayBets}</span>`;
+
+      const weekEnd = new Date(sow.getTime() + 6*24*3600*1000);
+      $("weekLabel").textContent =
+        `${sow.toLocaleDateString("fr-CA",{month:"short",day:"2-digit"})} → ${weekEnd.toLocaleDateString("fr-CA",{month:"short",day:"2-digit"})}`;
+      $("weekReal").innerHTML = `<span class="${clsMoney(weekReal)}">${fmtMoneyFR(weekReal)}</span>`;
+      $("weekExp").innerHTML = `<span class="${clsMoney(weekExp)}">${fmtMoneyFR(weekExp)}</span>`;
+      $("weekBets").innerHTML = `<span class="valNeu">${weekBets}</span>`;
+
+      renderTopBooks(bookAgg);
+
+      // Alerts (use real exposure now)
+      const alerts = [];
+      const byExposure = Object.entries(bookAgg).sort((a,b)=> b[1].openExposure - a[1].openExposure);
+      if(byExposure.length){
+        const totalOpen = byExposure.reduce((s,[,v])=> s+v.openExposure, 0);
+        const top = byExposure[0];
+        const share = totalOpen > 0 ? (top[1].openExposure / totalOpen) : 0;
+        if(share >= 0.45){
+          alerts.push({
+            title: "Concentration",
+            text: `${top[0]} = ~${Math.round(share*100)}% de ton open exposure`
+          });
+        }
+      }
+
+      if(staleOpen.length){
+        const worst = staleOpen.sort((a,b)=> b.ageDays - a.ageDays)[0];
+        alerts.push({
+          title: "Forgoten Open bet",
+          text: `${staleOpen.length} open bets depuis 3+ jours. Plus vieux: ${worst.ageDays} jours`
+        });
+      } else {
+        alerts.push({ title:"Forgoten Open bets", text:"None ✅" });
+      }
+
+      if(openCount >= 25){
+        alerts.push({ title:"Pending volume", text:`${openCount} open bets` });
+      }
+      renderAlerts(alerts);
+
+      // Latest open bets (closest to today)
+      const today = new Date(); today.setHours(0,0,0,0);
+
+      function dateKeyMs(x){
+        const dd = new Date(x);
+        if(!Number.isNaN(dd.getTime())){
+          dd.setHours(0,0,0,0);
+          return dd.getTime();
+        }
+        return 0;
+      }
+
+      openList.sort((a,b)=>{
+        const da = dateKeyMs(a.date);
+        const db = dateKeyMs(b.date);
+
+        const distA = da ? Math.abs(da - today.getTime()) : 9e18;
+        const distB = db ? Math.abs(db - today.getTime()) : 9e18;
+
+        if(distA !== distB) return distA - distB;
+        return db - da;
+      });
+
+      renderOpenBets(openList.slice(0, 8));
+      $("status").textContent = `Loaded ${arr.length} bets`;
+
+    }catch(e){
+      console.error(e);
+      $("status").textContent = "Failed: " + (e?.message || e);
+    }
+  }
+
+  loadData();
+</script>
+</body>
+</html>

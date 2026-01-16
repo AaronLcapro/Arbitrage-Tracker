@@ -1,0 +1,944 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arbitrage Tracker — Calendar</title>
+  <link rel="icon" type="image/jpeg" href="https://i.pinimg.com/736x/f2/f5/3a/f2f53ae6a0f77dde7f65eceaaa63c8a4.jpg">
+
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --stroke:rgba(255,255,255,.10);
+      --radius:18px;
+      --shadow:0 25px 80px rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(900px 500px at 15% -10%, rgba(59,130,246,.18), transparent 60%),
+        radial-gradient(700px 420px at 90% 0%, rgba(34,197,94,.16), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:20px;
+    }
+
+    .shell{ width:min(1200px, 100%); margin:0 auto; }
+
+    .topnav{
+      position:sticky; top:14px; z-index:200;
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid var(--stroke);
+      background: rgba(2,6,23,.55);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      margin-bottom:16px;
+    }
+    .brand{display:flex; align-items:center; gap:10px; font-weight:1000; margin-right:auto;}
+    .dot{width:10px;height:10px;border-radius:999px;background:linear-gradient(90deg, rgba(34,197,94,.95), rgba(59,130,246,.90)); box-shadow:0 0 20px rgba(59,130,246,.25);}
+
+    .navlinks{display:flex; gap:8px; flex-wrap:wrap;}
+    .navbtn{
+      text-decoration:none;
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:900;
+      font-size:13px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .navbtn.active{
+      background: linear-gradient(90deg, rgba(34,197,94,.35), rgba(59,130,246,.30));
+      border-color: rgba(255,255,255,.18);
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .header{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--stroke);
+      background: rgba(255,255,255,.03);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    h1{ margin:0; font-size:18px; }
+    .content{ padding:16px 18px 18px; }
+
+    .chip{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:1000;
+      cursor:pointer;
+      user-select:none;
+      transition:.12s ease;
+    }
+    .chip:hover{ transform: translateY(-1px); }
+    .monthLabel{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1100;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dow{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:10px;
+      margin:8px 0 10px;
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.3px;
+    }
+    .gridCal{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:10px;
+    }
+
+    .dayCell{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      min-height:92px;
+      padding:10px 10px 12px;
+      position:relative;
+      overflow:hidden;
+      transition:.14s ease;
+      cursor:pointer;
+    }
+    .dayCell:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.14);
+      box-shadow: 0 18px 60px rgba(0,0,0,.30);
+    }
+    .dayCell.muted{ opacity:.45; filter:saturate(.8); cursor:default; }
+    .dayCell::before{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(260px 130px at 20% 0%, rgba(148,163,184,.10), transparent 65%);
+      pointer-events:none;
+      opacity:.95;
+    }
+    .dayCell > *{ position:relative; }
+
+    .today{
+      border-color: rgba(99,102,241,.50) !important;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.16) inset, 0 18px 60px rgba(0,0,0,.32);
+    }
+    .today::before{
+      background: radial-gradient(280px 140px at 20% 0%, rgba(99,102,241,.24), transparent 66%);
+    }
+
+    /* ✅ Future-day look (same month, after today) */
+    .future{
+      background: rgba(255,255,255,.02);
+      border-color: rgba(255,255,255,.08);
+      filter: saturate(.92) brightness(.95);
+    }
+    .future::before{
+      background: radial-gradient(260px 130px at 20% 0%, rgba(148,163,184,.08), transparent 65%);
+      opacity: .85;
+    }
+
+    .dayNum{
+      position:absolute;
+      top:10px; left:10px;
+      font-weight:1000;
+      font-size:12px;
+      color:#cbd5e1;
+      opacity:.95;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .flame{
+      font-size:14px;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.35));
+    }
+
+    .center{
+      height:100%;
+      min-height:92px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      text-align:center;
+      padding-top:8px;
+    }
+
+    .pnl{
+      font-weight:1300;
+      font-size:18px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      line-height:1.05;
+    }
+
+    /* ✅ smaller expected profit on future days */
+    .pnl.expected{
+      font-size:13px;
+      font-weight:1200;
+      opacity:.95;
+      letter-spacing:.15px;
+    }
+    .pnl.expected small{
+      display:block;
+      margin-bottom:2px;
+      font-size:10px;
+      font-weight:1100;
+      color: rgba(148,163,184,.90);
+      letter-spacing:.2px;
+      text-transform:uppercase;
+    }
+
+    .betsPill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color:#e5e7eb;
+      font-weight:1000;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .pos{
+      background: rgba(34,197,94,.16);
+      border-color: rgba(34,197,94,.22);
+    }
+    .pos::before{
+      background: radial-gradient(260px 130px at 20% 0%, rgba(34,197,94,.22), transparent 65%);
+    }
+    .neg{
+      background: rgba(239,68,68,.14);
+      border-color: rgba(239,68,68,.20);
+    }
+    .neg::before{
+      background: radial-gradient(260px 130px at 20% 0%, rgba(239,68,68,.20), transparent 65%);
+    }
+
+    .statusBar{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1.2fr 1fr 1.2fr;
+      gap:10px;
+    }
+    .stat{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      padding:12px 12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .stat::before{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(320px 160px at 18% 0%, rgba(148,163,184,.12), transparent 65%);
+      opacity:.95;
+      pointer-events:none;
+    }
+    .stat > *{ position:relative; }
+    .statTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:6px;
+    }
+    .statLabel{
+      color:var(--muted);
+      font-weight:1000;
+      font-size:12px;
+      letter-spacing:.2px;
+      text-transform:uppercase;
+    }
+    .statValue{
+      font-weight:1300;
+      font-variant-numeric: tabular-nums;
+      font-size:16px;
+      letter-spacing:.2px;
+      white-space:nowrap;
+    }
+    .statSub{
+      color:rgba(148,163,184,.85);
+      font-size:12px;
+      font-weight:900;
+    }
+    .valPos{ color: rgba(34,197,94,.95); text-shadow: 0 0 14px rgba(34,197,94,.18); }
+    .valNeg{ color: rgba(239,68,68,.95); text-shadow: 0 0 14px rgba(239,68,68,.18); }
+    .valNeu{ color: #e5e7eb; }
+
+    .backdrop{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:999;
+    }
+    .modal{
+      width:min(900px, 100%);
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,15,25,.92);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 35px 120px rgba(0,0,0,.65);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .modalTitle{ font-weight:1200; }
+    .closeBtn{
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:1000;
+      cursor:pointer;
+    }
+    .modalBody{ padding:14px 16px 16px; }
+
+    .modalSummary{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1100;
+      font-size:12px;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+    }
+    .pill .k{ color: rgba(148,163,184,.92); font-weight:1100; }
+    .pill .v{ font-weight:1300; font-variant-numeric: tabular-nums; }
+
+    .betList{ display:flex; flex-direction:column; gap:10px; }
+
+    .betItem{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      padding:12px 12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .betItem::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(520px 220px at 18% 0%, var(--g1, rgba(59,130,246,.14)), transparent 65%),
+        radial-gradient(520px 220px at 88% 0%, var(--g2, rgba(34,197,94,.12)), transparent 65%);
+      pointer-events:none;
+      opacity:.65;
+    }
+    .betItem > *{ position:relative; }
+
+    .betTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .betDesc{
+      font-weight:1200;
+      font-size:13px;
+      max-width: 680px;
+      line-height:1.2;
+    }
+    .betRight{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .mini{
+      padding:6px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1100;
+      font-size:12px;
+      white-space:nowrap;
+    }
+
+    .booksRow{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .bookChip{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1100;
+      font-size:12px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+    .dotBook{
+      width:10px;height:10px;border-radius:999px;
+      box-shadow: 0 0 14px rgba(255,255,255,.10);
+      flex:0 0 auto;
+    }
+    .logo{
+      width:18px; height:18px;
+      border-radius:6px;
+      object-fit:contain;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      padding:2px;
+    }
+
+    @media (max-width: 900px){
+      .statusBar{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+
+    <div class="topnav">
+      <div class="brand"><span class="dot"></span> Arbitrage Tracker</div>
+      <div class="navlinks">
+            <a class="navbtn" href="<?= baseUrl ?>?page=dashboard">Dashboard</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=newbet">New Bet</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=history">History</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=overview">Overview</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=calendar">Calendar</a>
+      </div>
+    </div>
+
+    <script>
+      (function(){
+        const current = "<?= page ?>";
+        document.querySelectorAll(".navbtn").forEach(a => a.classList.remove("active"));
+        const map = {
+          newbet: 'a[href*="page=newbet"]',
+          history: 'a[href*="page=history"]',
+          overview: 'a[href*="page=overview"]',
+          calendar: 'a[href*="page=calendar"]'
+        };
+        const el = document.querySelector(map[current] || map.calendar);
+        if(el) el.classList.add("active");
+      })();
+    </script>
+
+    <div class="card">
+      <div class="header">
+        <div><h1>P&L Calendar</h1></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <div class="chip" onclick="shiftMonth(-1)">◀</div>
+          <div class="monthLabel" id="monthLabel">—</div>
+          <div class="chip" onclick="shiftMonth(1)">▶</div>
+          <div class="chip" onclick="goThisMonth()">This month</div>
+          <div class="chip" onclick="loadPnL()">Refresh</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="dow">
+          <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+        </div>
+        <div id="calGrid" class="gridCal"></div>
+        <div id="status"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="backdrop" id="backdrop" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modalHead">
+        <div class="modalTitle" id="modalTitle">—</div>
+        <button class="closeBtn" onclick="hideModal()">Close</button>
+      </div>
+      <div class="modalBody">
+        <div class="modalSummary" id="modalSummary"></div>
+        <div class="betList" id="modalList"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const URL = "https://script.google.com/macros/s/AKfycbyaQtVu8YwOLYRCndphdN9vCa_LTM2n2IPh4a-A8dAvCuJH73ERXmJvdK_uqGapCdaF/exec";
+  const API = URL + "?action=listArbs";
+  const $ = (id)=>document.getElementById(id);
+
+  const BOOKS = {
+    "Stake": { color:"#22c55e", glow:"rgba(34,197,94,.18)", logo:"https://getesports.net/wp-content/uploads/sites/21169/2025/05/stake-logo.png" },
+    "ETHAN-BET365": { color:"#16a34a", glow:"rgba(22,163,74,.18)", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Bet365_Logo.svg/2560px-Bet365_Logo.svg.png" },
+    "Betsson": { color:"#f97316", glow:"rgba(249,115,22,.16)", logo:"https://play-lh.googleusercontent.com/8C8pB8E4jrYaQ4erIcquFLzGA7J98mvJxNVklC9B-BGN1zW_BVYWa9VdWzJqrtOaEkps" },
+    "Bet365": { color:"#16a34a", glow:"rgba(22,163,74,.18)", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Bet365_Logo.svg/2560px-Bet365_Logo.svg.png" },
+    "Coolbet": { color:"#60a5fa", glow:"rgba(96,165,250,.18)", logo:"https://images.squarespace-cdn.com/content/v1/52000104e4b08f2e358d94a9/1625452239841-S386IV6PRDBAF1A4J2OA/coolbet" },
+    "LeoVegas": { color:"#f59e0b", glow:"rgba(245,158,11,.17)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/54c5ac3b0000ff00057cfb87/0x0.png" },
+    "Leo": { color:"#f59e0b", glow:"rgba(245,158,11,.17)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/54c5ac3b0000ff00057cfb87/0x0.png" },
+    "Pinnacle": { color:"#ef4444", glow:"rgba(239,68,68,.16)", logo:"https://upload.wikimedia.org/wikipedia/en/7/72/Pinnacle_Logo.jpeg" },
+    "SportInteraction": { color:"#a78bfa", glow:"rgba(167,139,250,.16)", logo:"https://play-lh.googleusercontent.com/oiHxBwvYz38cyaW4hyDU61FhBUmUpnm6uHo-qtOAvBGCRtyqZr-3mZrbdLjfrlHe9Ms" },
+    "Betway": { color:"#f97316", glow:"rgba(249,115,22,.16)", logo:"https://upload.wikimedia.org/wikipedia/commons/9/95/Betway_logo.jpg" },
+    "Bet99": { color:"#38bdf8", glow:"rgba(56,189,248,.16)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/616481a7f37ebd001dabc165/0x0.png" },
+    "N/A": { color:"#94a3b8", glow:"rgba(148,163,184,.14)", logo:"" }
+  };
+  function bookStyle(name){
+    const s = String(name ?? "").trim();
+    return BOOKS[s] || BOOKS["N/A"];
+  }
+
+  let calYear = (new Date()).getFullYear();
+  let calMonth = (new Date()).getMonth();
+
+  let allBets = [];
+  let betsByDay = new Map(); // ymd -> bet[]
+  // dailyAgg: { realSum, expectedSumNA, shownSum, count }
+  let dailyAgg = new Map();
+
+  function jsonp(url){
+    return new Promise((resolve, reject)=>{
+      const cb = "cb_" + Math.random().toString(36).slice(2);
+      window[cb] = (data)=>{
+        try{ delete window[cb]; }catch(_){}
+        script.remove();
+        resolve(data);
+      };
+      const script = document.createElement("script");
+      script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+      script.onerror = () => {
+        try{ delete window[cb]; }catch(_){}
+        script.remove();
+        reject(new Error("JSONP load failed"));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  function parseMoneyLoose(v){
+    const s0 = String(v ?? "").trim();
+    if(!s0) return NaN;
+    let s = s0.replace(/[^\d,.\-]/g, "");
+    if (s.includes(",") && !s.includes(".")) s = s.replace(",", ".");
+    if (s.includes(".") && s.includes(",")) s = s.replace(/,/g,"");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function fmtMoneyFR(n){
+    if(!Number.isFinite(n)) return "—";
+    const fixed = n.toFixed(2);
+    let [a,b] = fixed.split(".");
+    a = a.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return `${a},${b}$`;
+  }
+
+  function ymd(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const da = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${da}`;
+  }
+
+  function monthName(y,m){
+    const d = new Date(y,m,1);
+    return d.toLocaleDateString("fr-CA",{year:"numeric",month:"long"});
+  }
+
+  function toDateLabelFromKey(key){
+    const [y,m,d] = String(key).split("-").map(x=>parseInt(x,10));
+    const dt = new Date(y, (m||1)-1, d||1);
+    return dt.toLocaleDateString("fr-CA", { weekday:"long", year:"numeric", month:"long", day:"2-digit" });
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
+
+  function isOutcomeNA(outcome){
+    const o = String(outcome ?? "").trim().toUpperCase();
+    return (o === "" || o === "N/A" || o === "NA");
+  }
+
+  // ✅ same logic as History: average of the two outcome profits using bets + odds
+  function calcArbProfitAvg(bet){
+    const b1 = parseMoneyLoose(bet.bet1);
+    const o1 = parseMoneyLoose(bet.odds1);
+    const b2 = parseMoneyLoose(bet.bet2);
+    const o2 = parseMoneyLoose(bet.odds2);
+    if(!Number.isFinite(b1) || !Number.isFinite(o1) || !Number.isFinite(b2) || !Number.isFinite(o2)) return NaN;
+
+    const total = b1 + b2;
+    const p1 = b1 * o1 - total; // net if bet1 wins
+    const p2 = b2 * o2 - total; // net if bet2 wins
+    return (p1 + p2) / 2;
+  }
+
+  function renderSkeleton(){
+    $("monthLabel").textContent = monthName(calYear, calMonth);
+    const grid = $("calGrid");
+    grid.innerHTML = "";
+
+    const first = new Date(calYear, calMonth, 1);
+    const last = new Date(calYear, calMonth + 1, 0);
+    const firstDow = (first.getDay() + 6) % 7; // Monday=0
+    const daysInMonth = last.getDate();
+    const prevLast = new Date(calYear, calMonth, 0).getDate();
+
+    for(let i=0;i<42;i++){
+      const dayIndex = i - firstDow + 1;
+      let shownDate;
+      const cell = document.createElement("div");
+      cell.className = "dayCell muted";
+
+      const dayNum = document.createElement("div");
+      dayNum.className = "dayNum";
+
+      const center = document.createElement("div");
+      center.className = "center";
+
+      const pnl = document.createElement("div");
+      pnl.className = "pnl";
+
+      const bets = document.createElement("div");
+      bets.className = "betsPill";
+      bets.style.display = "none";
+
+      if(dayIndex <= 0){
+        const dnum = prevLast + dayIndex;
+        dayNum.textContent = dnum;
+        shownDate = new Date(calYear, calMonth-1, dnum);
+      } else if(dayIndex > daysInMonth){
+        const dnum = dayIndex - daysInMonth;
+        dayNum.textContent = dnum;
+        shownDate = new Date(calYear, calMonth+1, dnum);
+      } else {
+        cell.classList.remove("muted");
+        dayNum.textContent = dayIndex;
+        shownDate = new Date(calYear, calMonth, dayIndex);
+      }
+
+      cell.dataset.ymd = ymd(shownDate);
+      center.append(pnl, bets);
+      cell.append(dayNum, center);
+
+      cell.addEventListener("click", ()=>{
+        if (cell.classList.contains("muted")) return;
+        openDayModal(cell.dataset.ymd);
+      });
+
+      grid.appendChild(cell);
+    }
+
+    $("status").innerHTML = `
+      <div class="statusBar">
+        <div class="stat"><div class="statTop"><div class="statLabel">Month</div></div><div class="statValue valNeu">—</div><div class="statSub">Loading…</div></div>
+        <div class="stat"><div class="statTop"><div class="statLabel">Bets</div></div><div class="statValue valNeu">—</div><div class="statSub">Loading…</div></div>
+        <div class="stat"><div class="statTop"><div class="statLabel">Total Profit</div></div><div class="statValue valNeu">—</div><div class="statSub">Loading…</div></div>
+      </div>
+    `;
+  }
+
+  function buildDayMaps_(arr){
+    betsByDay = new Map();
+    dailyAgg = new Map();
+
+    for(const bet of arr){
+      const d = new Date(bet.date);
+      if(Number.isNaN(d.getTime())) continue;
+      if(d.getFullYear() !== calYear || d.getMonth() !== calMonth) continue;
+
+      const key = ymd(d);
+
+      if(!betsByDay.has(key)) betsByDay.set(key, []);
+      betsByDay.get(key).push(bet);
+
+      if(!dailyAgg.has(key)) dailyAgg.set(key, { realSum:0, expectedSumNA:0, shownSum:0, count:0 });
+      const agg = dailyAgg.get(key);
+      agg.count += 1;
+
+      // real profit (O)
+      const real = parseMoneyLoose(bet.profit);
+
+      // expected only for N/A (avg like History)
+      const expected = calcArbProfitAvg(bet);
+
+      if (isOutcomeNA(bet.outcome)) {
+        if (Number.isFinite(expected)) agg.expectedSumNA += expected;
+      } else {
+        if (Number.isFinite(real)) agg.realSum += real;
+      }
+
+      // shownSum = real finished + expected for N/A
+      if (isOutcomeNA(bet.outcome)) {
+        if (Number.isFinite(expected)) agg.shownSum += expected;
+      } else {
+        if (Number.isFinite(real)) agg.shownSum += real;
+      }
+    }
+
+    for (const [k, list] of betsByDay.entries()){
+      list.sort((a,b)=>(Number(b.row)||0)-(Number(a.row)||0));
+    }
+  }
+
+  function bookChip(book, bet, odds){
+    const b = bookStyle(book);
+    const betN = parseMoneyLoose(bet);
+    const oddsN = parseMoneyLoose(odds);
+
+    return `
+      <span class="bookChip" style="box-shadow:0 0 16px ${b.glow};">
+        ${b.logo ? `<img class="logo" src="${b.logo}" alt="">` : ""}
+        <span class="dotBook" style="background:${b.color}; box-shadow:0 0 14px ${b.glow};"></span>
+        <span>${escapeHtml(book)}</span>
+        <span style="font-weight:1300;">${fmtMoneyFR(Number.isFinite(betN)?betN:NaN)}</span>
+        <span style="opacity:.80;">@</span>
+        <span style="font-weight:1300;">${Number.isFinite(oddsN)? String(oddsN).replace(".", ",") : "—"}</span>
+      </span>
+    `;
+  }
+
+  function openDayModal(key){
+    const list = betsByDay.get(key) || [];
+    const agg = dailyAgg.get(key) || { realSum:0, expectedSumNA:0, shownSum:0, count:0 };
+
+    $("modalTitle").textContent = toDateLabelFromKey(key);
+
+    const totalClass = agg.shownSum > 0 ? "valPos" : (agg.shownSum < 0 ? "valNeg" : "valNeu");
+
+    $("modalSummary").innerHTML = `
+      <div class="pill"><span class="k">Bets</span><span class="v">${agg.count}</span></div>
+      <div class="pill"><span class="k">Total</span><span class="v ${totalClass}">${fmtMoneyFR(agg.shownSum)}</span></div>
+    `;
+
+    if(!list.length){
+      $("modalList").innerHTML = `<div class="betItem"><div class="betDesc">No bets for this day.</div></div>`;
+    } else {
+      $("modalList").innerHTML = list.map(bet=>{
+        const b1 = bookStyle(bet.book1);
+        const b2 = bookStyle(bet.book2);
+        const outcome = (bet.outcome && String(bet.outcome).trim() !== "") ? String(bet.outcome).trim() : "N/A";
+
+        const profitReal = parseMoneyLoose(bet.profit);
+        const profitAuto = calcArbProfitAvg(bet);
+
+        // ✅ modal Profit:
+        // - N/A => avg auto (like history)
+        // - finished => real
+        const shownProfit = isOutcomeNA(bet.outcome) ? profitAuto : profitReal;
+
+        return `
+          <div class="betItem" style="--g1:${b1.glow};--g2:${b2.glow};">
+            <div class="betTop">
+              <div class="betDesc">${escapeHtml(bet.desc || "—")}</div>
+              <div class="betRight">
+                <span class="mini">Row ${bet.row}</span>
+                <span class="mini">Outcome: <b>${escapeHtml(outcome)}</b></span>
+                <span class="mini">Profit: <b>${fmtMoneyFR(shownProfit)}</b></span>
+              </div>
+            </div>
+            <div class="booksRow">
+              ${bookChip(bet.book1, bet.bet1, bet.odds1)}
+              ${bookChip(bet.book2, bet.bet2, bet.odds2)}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    showModal();
+  }
+
+  function showModal(){ $("backdrop").style.display = "flex"; }
+  function hideModal(){ $("backdrop").style.display = "none"; }
+  function closeModal(e){ if(e.target.id === "backdrop") hideModal(); }
+
+  async function loadPnL(){
+    try{
+      const data = await jsonp(API);
+      if(data && data.error){
+        $("status").innerHTML = `<div class="statusBar"><div class="stat"><div class="statLabel">Error</div><div class="statValue valNeg">${String(data.error)}</div></div></div>`;
+        return;
+      }
+
+      const arr = Array.isArray(data) ? data : [];
+      allBets = arr;
+
+      const today = new Date();
+      const todayKey = ymd(today);
+
+      buildDayMaps_(arr);
+
+      // max day by shownSum (not expected-only)
+      let maxKey = null;
+      let maxVal = -Infinity;
+      for (const [k,v] of dailyAgg.entries()){
+        if (Number.isFinite(v.shownSum) && v.shownSum > maxVal){
+          maxVal = v.shownSum;
+          maxKey = k;
+        }
+      }
+
+      const cells = Array.from(document.querySelectorAll(".dayCell"));
+      let countDays = 0;
+      let countBets = 0;
+      let monthShown = 0;
+
+      for(const c of cells){
+        const key = c.dataset.ymd;
+        const pnlEl = c.querySelector(".pnl");
+        const betsEl = c.querySelector(".betsPill");
+        const dayNumEl = c.querySelector(".dayNum");
+
+        c.classList.remove("pos","neg","today","future");
+        pnlEl.classList.remove("expected");
+
+        const oldFlame = dayNumEl.querySelector(".flame");
+        if(oldFlame) oldFlame.remove();
+
+        pnlEl.textContent = "";
+        betsEl.textContent = "";
+        betsEl.style.display = "none";
+
+        if(key === todayKey) c.classList.add("today");
+        if (key > todayKey && !c.classList.contains("muted")) c.classList.add("future");
+
+        const v = dailyAgg.get(key);
+        if(v && Number.isFinite(v.shownSum)){
+          countDays++;
+          countBets += v.count;
+          monthShown += v.shownSum;
+
+          betsEl.textContent = `${v.count} bet${v.count>1 ? "s" : ""}`;
+          betsEl.style.display = "inline-flex";
+
+          // ✅ FUTURE DAYS:
+          // Expected = ONLY the N/A bets (expectedSumNA)
+          if (key > todayKey) {
+            const exp = v.expectedSumNA;
+            pnlEl.classList.add("expected");
+            pnlEl.innerHTML = `<small>Expected</small>${fmtMoneyFR(exp)}`;
+          } else {
+            // past/today shows total shownSum (real + expected NA)
+            pnlEl.textContent = fmtMoneyFR(v.shownSum);
+          }
+
+          // only colorize past/today
+          if (key <= todayKey) {
+            if (v.shownSum > 0) c.classList.add("pos");
+            else if (v.shownSum < 0) c.classList.add("neg");
+          }
+
+          if(key === maxKey){
+            const flame = document.createElement("span");
+            flame.className = "flame";
+            flame.textContent = "🔥";
+            dayNumEl.appendChild(flame);
+          }
+        }
+      }
+
+      const profitClass = monthShown > 0 ? "valPos" : (monthShown < 0 ? "valNeg" : "valNeu");
+      const profitSub = monthShown > 0 ? "Keep going" : (monthShown < 0 ? "Down month" : "Flat");
+
+      $("status").innerHTML = `
+        <div class="statusBar">
+          <div class="stat">
+            <div class="statTop"><div class="statLabel">Month</div></div>
+            <div class="statValue valNeu">${monthName(calYear, calMonth)}</div>
+            <div class="statSub">${countDays} day${countDays>1 ? "s" : ""} with bets</div>
+          </div>
+
+          <div class="stat">
+            <div class="statTop"><div class="statLabel">Bets</div></div>
+            <div class="statValue valNeu">${countBets}</div>
+            <div class="statSub">Total arb bets in month</div>
+          </div>
+
+          <div class="stat">
+            <div class="statTop"><div class="statLabel">Total Profit</div></div>
+            <div class="statValue ${profitClass}">${fmtMoneyFR(monthShown)}</div>
+            <div class="statSub">${profitSub}</div>
+          </div>
+        </div>
+      `;
+
+    }catch(e){
+      console.error(e);
+      $("status").innerHTML = `<div class="statusBar"><div class="stat"><div class="statLabel">Failed</div><div class="statValue valNeg">${String(e.message || e)}</div></div></div>`;
+    }
+  }
+
+  function goThisMonth(){
+    const d = new Date();
+    calYear = d.getFullYear();
+    calMonth = d.getMonth();
+    renderSkeleton();
+    loadPnL();
+  }
+  function shiftMonth(delta){
+    const d = new Date(calYear, calMonth + delta, 1);
+    calYear = d.getFullYear();
+    calMonth = d.getMonth();
+    renderSkeleton();
+    loadPnL();
+  }
+
+  renderSkeleton();
+  loadPnL();
+</script>
+</body>
+</html>

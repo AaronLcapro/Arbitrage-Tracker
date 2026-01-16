@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arbitrage Tracker — History</title>
+  <base target="_top">
+  <link rel="icon" type="image/jpeg" href="https://i.pinimg.com/736x/f2/f5/3a/f2f53ae6a0f77dde7f65eceaaa63c8a4.jpg">
+
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --stroke:rgba(255,255,255,.10);
+      --radius:18px;
+      --shadow:0 25px 80px rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(900px 500px at 15% -10%, rgba(59,130,246,.18), transparent 60%),
+        radial-gradient(700px 420px at 90% 0%, rgba(34,197,94,.16), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:20px;
+    }
+    .shell{ width:min(1200px, 100%); margin:0 auto; }
+
+    /* NAV */
+    .topnav{
+      position:sticky; top:14px; z-index:200;
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid var(--stroke);
+      background: rgba(2,6,23,.55);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      margin-bottom:16px;
+    }
+    .brand{display:flex; align-items:center; gap:10px; font-weight:1000; margin-right:auto;}
+    .dot{width:10px;height:10px;border-radius:999px;background:linear-gradient(90deg, rgba(34,197,94,.95), rgba(59,130,246,.90)); box-shadow:0 0 22px rgba(59,130,246,.25);}
+
+    .navlinks{display:flex; gap:8px; flex-wrap:wrap;}
+    .navbtn{
+      text-decoration:none;
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:1000;
+      font-size:13px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      transition:.12s ease;
+    }
+    .navbtn:hover{ transform: translateY(-1px); }
+    .navbtn.active{
+      background: linear-gradient(90deg, rgba(34,197,94,.35), rgba(59,130,246,.30));
+      border-color: rgba(255,255,255,.18);
+    }
+
+    /* PAGE CARD */
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .header{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--stroke);
+      background: rgba(255,255,255,.03);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    h1{ margin:0; font-size:18px; }
+    .sub{ color: var(--muted); font-size:13px; margin-top:6px; }
+    .content{ padding:16px 18px 18px; }
+
+    .pill{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1000;
+      font-size:13px;
+      color: var(--text);
+      cursor:pointer;
+      user-select:none;
+      transition: .12s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .pill:hover{ transform: translateY(-1px); }
+
+    /* SEARCH */
+    .searchWrap{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .search{
+      min-width: 280px;
+      max-width: 520px;
+      width: min(520px, 60vw);
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      outline:none;
+      font-weight:1000;
+      font-size:13px;
+    }
+    .search::placeholder{ color: rgba(148,163,184,.75); font-weight:900; }
+    .search:focus{
+      border-color: rgba(99,102,241,.45);
+      box-shadow: 0 0 0 3px rgba(99,102,241,.14);
+    }
+
+    /* NEW: SORT DROPDOWN (same style as inputs) */
+    .sortSel{
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      outline:none;
+      font-weight:1000;
+      font-size:13px;
+      appearance:none;
+      cursor:pointer;
+      padding-right:36px;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(255,255,255,.65) 50%),
+        linear-gradient(135deg, rgba(255,255,255,.65) 50%, transparent 50%);
+      background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+      background-size:6px 6px, 6px 6px;
+      background-repeat:no-repeat;
+    }
+    .sortSel:focus{
+      border-color: rgba(99,102,241,.45);
+      box-shadow: 0 0 0 3px rgba(99,102,241,.14);
+    }
+    .sortSel option{ background:#0b0f17; color:#e5e7eb; }
+
+    .kbdHint{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+    }
+
+    /* LIST */
+    .list{ display:flex; flex-direction:column; gap:12px; }
+
+    /* BET CARD */
+    .betCard{
+      position:relative;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.045);
+      padding:14px 14px 12px;
+      overflow:hidden;
+      transition:.14s ease;
+    }
+    .betCard:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.14);
+      box-shadow: 0 18px 60px rgba(0,0,0,.30);
+    }
+    /* glow only from book1 + book2 */
+    .betCard::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(520px 220px at 18% 0%, var(--g1, rgba(59,130,246,.14)), transparent 65%),
+        radial-gradient(520px 220px at 88% 0%, var(--g2, rgba(34,197,94,.12)), transparent 65%);
+      pointer-events:none;
+      opacity: .85;
+      transition:.14s ease;
+    }
+    .betCard > *{ position:relative; }
+
+    /* pending vs finished */
+    .betCard.pending{
+      background: rgba(255,255,255,.065);
+      border-color: rgba(255,255,255,.13);
+    }
+    .betCard.pending::before{ opacity: .92; }
+
+    .betCard.finished{
+      background: rgba(255,255,255,.018);
+      border-color: rgba(255,255,255,.075);
+      filter: brightness(.86) saturate(.92);
+    }
+    .betCard.finished::before{ opacity: .32; }
+    .betCard.finished .hair{ opacity: .62; }
+
+    .hair{
+      height:2px;
+      border-radius:999px;
+      background: linear-gradient(90deg, var(--c1,#94a3b8), var(--c2,#94a3b8));
+      opacity:.92;
+      box-shadow: 0 0 16px var(--c1,#94a3b8)44, 0 0 16px var(--c2,#94a3b8)33;
+      margin-bottom:10px;
+      transition:.14s ease;
+    }
+
+    .rowTop{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .title{
+      font-weight:1100;
+      font-size:14px;
+      line-height:1.2;
+      letter-spacing:.1px;
+      max-width: 740px;
+    }
+    .meta{
+      color:var(--muted);
+      font-size:12px;
+      font-variant-numeric: tabular-nums;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top:6px;
+    }
+
+    .rightChips{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .chip{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1000;
+      font-size:12px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      box-shadow: 0 0 18px rgba(0,0,0,.10);
+    }
+    .chip .label{ color: var(--muted); font-weight:1000; }
+    .money{ font-weight:1300; font-variant-numeric: tabular-nums; letter-spacing:.2px; }
+    .money.big{ font-size:13px; }
+
+    .booksRow{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .bookChip{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1100;
+      font-size:12px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      box-shadow: 0 0 16px rgba(0,0,0,.12);
+    }
+    .logo{
+      width:18px; height:18px;
+      border-radius:6px;
+      object-fit:contain;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      padding:2px;
+    }
+    .dotBook{
+      width:10px;height:10px;border-radius:999px;
+      box-shadow: 0 0 14px rgba(255,255,255,.10);
+      flex:0 0 auto;
+    }
+
+    .actions{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .btn{
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:1100;
+      font-size:13px;
+      cursor:pointer;
+      transition:.12s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); }
+    .btn.danger{
+      border-color: rgba(239,68,68,.26);
+      background: rgba(239,68,68,.10);
+    }
+
+    .footerRow{
+      margin-top:14px;
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* MODAL */
+    .backdrop{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:999;
+    }
+    .modal{
+      width:min(760px, 100%);
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,15,25,.92);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 35px 120px rgba(0,0,0,.65);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .modalTitle{ font-weight:1200; }
+    .modalBody{ padding:14px 16px 16px; }
+
+    .form{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .field{ display:flex; flex-direction:column; gap:6px; }
+    .label{ font-size:12px; color: var(--muted); font-weight:1000; }
+
+    input, select{
+      padding:10px 11px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      outline:none;
+      font-weight:1000;
+      font-size:13px;
+    }
+    select{
+      appearance:none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, rgba(255,255,255,.65) 50%),
+        linear-gradient(135deg, rgba(255,255,255,.65) 50%, transparent 50%);
+      background-position: calc(100% - 18px) 50%, calc(100% - 12px) 50%;
+      background-size:6px 6px, 6px 6px;
+      background-repeat:no-repeat;
+      padding-right:34px;
+      cursor:pointer;
+    }
+    option{ background:#0b0f17; color:#e5e7eb; }
+    input:focus, select:focus{
+      border-color: rgba(99,102,241,.45);
+      box-shadow: 0 0 0 3px rgba(99,102,241,.14);
+    }
+    input[readonly]{ opacity:.85; cursor:not-allowed; }
+
+    .modalActions{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .note{
+      margin-top:10px;
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.4;
+    }
+
+    @media (max-width: 900px){
+      .form{ grid-template-columns: 1fr; }
+      .search{ width: 100%; min-width: 0; }
+      .searchWrap{ justify-content:stretch; }
+      .sortSel{ width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <div class="topnav">
+      <div class="brand"><span class="dot"></span> Arbitrage Tracker</div>
+      <div class="navlinks">
+            <a class="navbtn" href="<?= baseUrl ?>?page=dashboard">Dashboard</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=newbet">New Bet</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=history">History</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=overview">Overview</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=calendar">Calendar</a>
+      </div>
+    </div>
+<script>
+  (function(){
+    const current = "<?= page ?>"; // injecté par Apps Script
+    document.querySelectorAll(".navbtn").forEach(a => a.classList.remove("active"));
+    const map = {
+      newbet: 'a[href*="page=newbet"]',
+      history: 'a[href*="page=history"]',
+      overview: 'a[href*="page=overview"]',
+      calendar: 'a[href*="page=calendar"]'
+    };
+    const el = document.querySelector(map[current] || map.overview);
+    if(el) el.classList.add("active");
+  })();
+</script>
+    <div class="card">
+      <div class="header">
+        <div>
+          <h1>History</h1>
+          <div class="sub" id="subline">—</div>
+        </div>
+
+        <div class="searchWrap">
+          <input id="search" class="search" type="text" placeholder="Rechercher: description, book, outcome, date, row…" />
+
+          <!-- NEW: sort dropdown -->
+          <select id="sort" class="sortSel" title="Trier">
+            <option value="date_desc">Sort: Date (recent → old)</option>
+            <option value="row_desc">Sort: Row (high → low)</option>
+          </select>
+
+          <span class="kbdHint">Ctrl+K</span>
+          <div class="pill" onclick="refresh()">Refresh</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="list" id="list"></div>
+
+        <!-- plus de pagination -->
+        <div class="footerRow" style="display:none;"></div>
+
+        <div class="sub" id="status" style="margin-top:12px;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="backdrop" id="backdrop" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modalHead">
+        <div class="modalTitle">Edit bet</div>
+        <button class="btn" onclick="hideModal()">Close</button>
+      </div>
+      <div class="modalBody">
+        <div class="form">
+          <div class="field" style="grid-column:1/-1;">
+            <div class="label">Description</div>
+            <input id="m_desc" type="text" />
+          </div>
+
+          <div class="field">
+            <div class="label">Book 1</div>
+            <select id="m_book1"></select>
+          </div>
+          <div class="field">
+            <div class="label">Book 2</div>
+            <select id="m_book2"></select>
+          </div>
+
+          <div class="field">
+            <div class="label">Bet 1</div>
+            <input id="m_bet1" type="text" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <div class="label">Odds 1</div>
+            <input id="m_odds1" type="text" inputmode="decimal" />
+          </div>
+
+          <div class="field">
+            <div class="label">Bet 2</div>
+            <input id="m_bet2" type="text" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <div class="label">Odds 2</div>
+            <input id="m_odds2" type="text" inputmode="decimal" />
+          </div>
+
+          <div class="field">
+            <div class="label">Outcome</div>
+            <select id="m_outcome"></select>
+          </div>
+
+          <div class="field">
+            <div class="label">Profit (auto)</div>
+            <input id="m_profit" type="text" readonly />
+          </div>
+        </div>
+
+        <div class="note">⚠️ Confirmation required before saving or deleting (no undo).</div>
+
+        <div class="modalActions">
+          <button class="btn danger" onclick="confirmDelete()">Delete</button>
+          <button class="btn" onclick="confirmSave()">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // 🔁 ton endpoint history (doGet listArbs)
+  const URL = "https://script.google.com/macros/s/AKfycbzZPu54KZZltHUszIqFMGiOAQAkiOqHzAeDPe82BLXNOFRrNiQThomdzkTtWPncgBlF/exec";
+
+  const $ = (id)=>document.getElementById(id);
+
+  const BOOKS = {
+    "Stake": { color:"#22c55e", glow:"rgba(34,197,94,.18)", logo:"https://getesports.net/wp-content/uploads/sites/21169/2025/05/stake-logo.png" },
+    "ETHAN-BET365": { color:"#16a34a", glow:"rgba(22,163,74,.18)", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Bet365_Logo.svg/2560px-Bet365_Logo.svg.png" },
+    "Betsson": { color:"#f97316", glow:"rgba(249,115,22,.16)", logo:"https://play-lh.googleusercontent.com/8C8pB8E4jrYaQ4erIcquFLzGA7J98mvJxNVklC9B-BGN1zW_BVYWa9VdWzJqrtOaEkps" },
+    "Bet365": { color:"#16a34a", glow:"rgba(22,163,74,.18)", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Bet365_Logo.svg/2560px-Bet365_Logo.svg.png" },
+    "Coolbet": { color:"#60a5fa", glow:"rgba(96,165,250,.18)", logo:"https://images.squarespace-cdn.com/content/v1/52000104e4b08f2e358d94a9/1625452239841-S386IV6PRDBAF1A4J2OA/coolbet" },
+    "LeoVegas": { color:"#f59e0b", glow:"rgba(245,158,11,.17)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/54c5ac3b0000ff00057cfb87/0x0.png" },
+    "Leo": { color:"#f59e0b", glow:"rgba(245,158,11,.17)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/54c5ac3b0000ff00057cfb87/0x0.png" },
+    "Pinnacle": { color:"#ef4444", glow:"rgba(239,68,68,.16)", logo:"https://upload.wikimedia.org/wikipedia/en/7/72/Pinnacle_Logo.jpeg" },
+    "SportInteraction": { color:"#a78bfa", glow:"rgba(167,139,250,.16)", logo:"https://play-lh.googleusercontent.com/oiHxBwvYz38cyaW4hyDU61FhBUmUpnm6uHo-qtOAvBGCRtyqZr-3mZrbdLjfrlHe9Ms" },
+    "Betway": { color:"#f97316", glow:"rgba(249,115,22,.16)", logo:"https://upload.wikimedia.org/wikipedia/commons/9/95/Betway_logo.jpg" },
+    "Bet99": { color:"#38bdf8", glow:"rgba(56,189,248,.16)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/616481a7f37ebd001dabc165/0x0.png" },
+    "N/A": { color:"#94a3b8", glow:"rgba(148,163,184,.14)", logo:"" }
+  };
+
+  function bookStyle(name){
+    const s = String(name ?? "").trim();
+    return BOOKS[s] || BOOKS["N/A"];
+  }
+
+  function jsonp(url){
+    return new Promise((resolve, reject)=>{
+      const cb = "cb_" + Math.random().toString(36).slice(2);
+      window[cb] = (data)=>{
+        try{ delete window[cb]; }catch(_){}
+        script.remove();
+        resolve(data);
+      };
+      const script = document.createElement("script");
+      script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+      script.onerror = () => {
+        try{ delete window[cb]; }catch(_){}
+        script.remove();
+        reject(new Error("JSONP load failed"));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
+
+  function parseMoneyLoose(v){
+    const s0 = String(v ?? "").trim();
+    if(!s0) return NaN;
+    let s = s0.replace(/[^\d,.\-]/g, "");
+    if (s.includes(",") && !s.includes(".")) s = s.replace(",", ".");
+    if (s.includes(".") && s.includes(",")) s = s.replace(/,/g,"");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function formatFRMoney(n){
+    if(!Number.isFinite(n)) return "—";
+    const fixed = n.toFixed(2);
+    let [a,b] = fixed.split(".");
+    a = a.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return `${a},${b}$`;
+  }
+  function formatFRNum(n){
+    if(!Number.isFinite(n)) return "—";
+    const fixed = n.toFixed(2);
+    let [a,b] = fixed.split(".");
+    a = a.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return `${a},${b}`;
+  }
+  function fmtMoneyAfter(v){
+    const n = (typeof v === "number") ? v : parseMoneyLoose(v);
+    return formatFRMoney(n);
+  }
+  function fmtNum(v){
+    const n = (typeof v === "number") ? v : parseMoneyLoose(v);
+    return formatFRNum(n);
+  }
+
+  function toLocalDateStr(dateStr){
+    const d = new Date(dateStr);
+    if(Number.isNaN(d.getTime())) return String(dateStr || "—");
+    return d.toLocaleDateString("fr-CA", { year:"numeric", month:"short", day:"2-digit" });
+  }
+
+  function calcArbProfit(bet1, odds1, bet2, odds2){
+    const b1 = parseMoneyLoose(bet1);
+    const o1 = parseMoneyLoose(odds1);
+    const b2 = parseMoneyLoose(bet2);
+    const o2 = parseMoneyLoose(odds2);
+    if(!Number.isFinite(b1)||!Number.isFinite(o1)||!Number.isFinite(b2)||!Number.isFinite(o2)) return null;
+
+    const total = b1 + b2;
+    const p1 = b1*o1 - total;
+    const p2 = b2*o2 - total;
+    const avg = (p1 + p2) / 2;
+    return { avg };
+  }
+
+  function bookChip(book, bet, odds){
+    const b = bookStyle(book);
+    return `
+      <span class="bookChip" style="box-shadow:0 0 16px ${b.glow};">
+        ${b.logo ? `<img class="logo" src="${b.logo}" alt="">` : ""}
+        <span class="dotBook" style="background:${b.color}; box-shadow:0 0 14px ${b.glow};"></span>
+        <span>${escapeHtml(book)}</span>
+        <span class="money">${fmtMoneyAfter(bet)}</span>
+        <span style="opacity:.80;">@</span>
+        <span class="money">${fmtNum(odds)}</span>
+      </span>
+    `;
+  }
+
+  function cardHTML(item){
+    const b1 = bookStyle(item.book1);
+    const b2 = bookStyle(item.book2);
+
+    const outcome = (item.outcome && String(item.outcome).trim() !== "") ? String(item.outcome).trim() : "N/A";
+    const isFinished = outcome.toUpperCase() !== "N/A";
+    const stateClass = isFinished ? "finished" : "pending";
+
+    const computed = calcArbProfit(item.bet1, item.odds1, item.bet2, item.odds2);
+
+const profitSheet = (typeof item.profit === "number")
+  ? item.profit
+  : parseMoneyLoose(item.profit);
+
+// ✅ si outcome = N/A => on affiche le profit auto (modal)
+// ✅ sinon => on affiche le profit réel (sheet)
+const outUpper = String(outcome || "N/A").trim().toUpperCase();
+const isNA = (outUpper === "N/A" || outUpper === "NA" || outUpper === "");
+
+const profit = isNA
+  ? (computed ? computed.avg : profitSheet)     // pending => auto
+  : (Number.isFinite(profitSheet) ? profitSheet : (computed ? computed.avg : NaN)); // finished => sheet
+
+    return `
+      <div class="betCard ${stateClass}" style="--c1:${b1.color};--c2:${b2.color};--g1:${b1.glow};--g2:${b2.glow};" data-row="${item.row}">
+        <div class="hair"></div>
+
+        <div class="rowTop">
+          <div>
+            <div class="title">${escapeHtml(item.desc || "—")}</div>
+            <div class="meta">
+              <span>${escapeHtml(toLocalDateStr(item.date))}</span>
+              <span>•</span>
+              <span>Row ${item.row}</span>
+            </div>
+          </div>
+
+          <div class="rightChips">
+            <div class="chip">
+              <span class="label">Outcome:</span>
+              <span class="money big">${escapeHtml(outcome)}</span>
+            </div>
+            <div class="chip">
+              <span class="label">Profit:</span>
+              <span class="money big">${formatFRMoney(profit)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="booksRow">
+          ${bookChip(item.book1, item.bet1, item.odds1)}
+          ${bookChip(item.book2, item.bet2, item.odds2)}
+        </div>
+
+        <div class="actions">
+          <button class="btn" onclick="openEdit(${item.row})">Edit</button>
+          <button class="btn danger" onclick="openEdit(${item.row}, true)">Delete</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // ==========
+  // DATA + SEARCH + SORT
+  // ==========
+  let allItems = [];
+  let filteredItems = [];
+  let cacheByRow = new Map();
+
+  function normalize(s){
+    return String(s ?? "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function matchesQuery(item, q){
+    if(!q) return true;
+    const hay = [
+      item.row,
+      item.date,
+      item.desc,
+      item.book1,
+      item.book2,
+      item.outcome,
+      item.profit
+    ].map(normalize).join(" | ");
+    return hay.includes(q);
+  }
+
+  function getSortMode(){
+    const el = $("sort");
+    return el ? String(el.value || "date_desc") : "date_desc";
+  }
+
+  function sortItems(arr){
+    const mode = getSortMode();
+
+    arr.sort((a,b)=>{
+      if(mode === "row_desc"){
+        // row high -> low (100,99,98)
+        return (Number(b.row)||0) - (Number(a.row)||0);
+      }
+
+      // default: date desc (recent -> old), fallback row desc
+      const da = new Date(a.date).getTime();
+      const db = new Date(b.date).getTime();
+      const aOk = Number.isFinite(da);
+      const bOk = Number.isFinite(db);
+      if(aOk && bOk && da !== db) return db - da;
+      return (Number(b.row)||0) - (Number(a.row)||0);
+    });
+
+    return arr;
+  }
+
+  function renderList(){
+    const html = filteredItems.map(it => cardHTML(it)).join("");
+    $("list").innerHTML = html;
+
+    const q = $("search").value.trim();
+    const shown = filteredItems.length;
+    const total = allItems.length;
+
+    const mode = getSortMode();
+    const sortLabel = (mode === "row_desc") ? "row (high → low)" : "date (recent → old)";
+
+    $("subline").textContent =
+      q
+        ? `${shown} / ${total} bets • filtre actif • sort: ${sortLabel}`
+        : `${total} bets • sort: ${sortLabel}`;
+
+    $("status").textContent = shown ? "—" : "Aucun bet ne match la recherche.";
+  }
+
+  let searchTimer = null;
+  function applySearch(){
+    const q = normalize($("search").value.trim());
+    filteredItems = allItems.filter(it => matchesQuery(it, q));
+    sortItems(filteredItems);
+    renderList();
+  }
+
+  function initSearchUI(){
+    $("search").addEventListener("input", ()=>{
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(applySearch, 80);
+    });
+
+    $("sort").addEventListener("change", ()=>{
+      applySearch();
+    });
+
+    window.addEventListener("keydown", (e)=>{
+      if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){
+        e.preventDefault();
+        $("search").focus();
+        $("search").select();
+      }
+      if(e.key === "Escape" && document.activeElement === $("search")){
+        $("search").value = "";
+        applySearch();
+        $("search").blur();
+      }
+    });
+  }
+
+  // ==========
+  // FETCH (FULL LOAD)
+  // ==========
+  async function fetchAll(reset=false){
+    if(reset){
+      allItems = [];
+      filteredItems = [];
+      cacheByRow.clear();
+      $("list").innerHTML = "";
+      $("search").value = "";
+      // keep sort selection
+    }
+
+    $("status").textContent = "Loading…";
+    const data = await jsonp(URL + "?action=listArbs");
+
+    if(data?.error){
+      $("status").textContent = "Error: " + data.error;
+      $("subline").textContent = "—";
+      return;
+    }
+
+    const items = Array.isArray(data) ? data : (data?.items || []);
+    if(!items.length){
+      $("subline").textContent = "No bets found.";
+      $("status").textContent = "—";
+      return;
+    }
+
+    items.forEach(it => cacheByRow.set(it.row, it));
+
+    allItems = items;
+    // apply current sort + current search
+    applySearch();
+
+    $("status").textContent = "—";
+  }
+
+  function refresh(){
+    fetchAll(true).catch(err => $("status").textContent = "Failed: " + err.message);
+  }
+
+  // ==========
+  // MODAL / EDIT
+  // ==========
+  let currentRow = null;
+
+  function fillSelect(sel, includeNA=false){
+    sel.innerHTML = "";
+    if(includeNA){
+      const opt = document.createElement("option");
+      opt.value = "N/A"; opt.textContent = "N/A";
+      sel.appendChild(opt);
+    }
+    const order = ["Stake","ETHAN-BET365","Betsson","Bet365","Coolbet","LeoVegas","Pinnacle","SportInteraction","Betway","Bet99"];
+    order.forEach(k=>{
+      const opt = document.createElement("option");
+      opt.value = k; opt.textContent = k;
+      sel.appendChild(opt);
+    });
+  }
+
+  function showModal(){ $("backdrop").style.display = "flex"; }
+  function hideModal(){ $("backdrop").style.display = "none"; currentRow=null; }
+  function closeModal(e){ if(e.target.id === "backdrop") hideModal(); }
+
+  function recomputeProfitUI(){
+    const p = calcArbProfit($("m_bet1").value, $("m_odds1").value, $("m_bet2").value, $("m_odds2").value);
+    $("m_profit").value = p ? formatFRMoney(p.avg) : "—";
+  }
+  ["m_bet1","m_odds1","m_bet2","m_odds2"].forEach(id=>{
+    $(id).addEventListener("input", recomputeProfitUI);
+  });
+
+  function openEdit(row, deleteOnly=false){
+    const it = cacheByRow.get(row);
+    if(!it){ alert("Row not loaded."); return; }
+    currentRow = row;
+
+    $("m_desc").value = it.desc || "";
+    $("m_book1").value = it.book1 || "ETHAN-BET365";
+    $("m_book2").value = it.book2 || "Stake";
+
+    $("m_bet1").value = (it.bet1 ?? "") === "" ? "" : String(it.bet1).replace(".", ",");
+    $("m_odds1").value = (it.odds1 ?? "") === "" ? "" : String(it.odds1).replace(".", ",");
+    $("m_bet2").value = (it.bet2 ?? "") === "" ? "" : String(it.bet2).replace(".", ",");
+    $("m_odds2").value = (it.odds2 ?? "") === "" ? "" : String(it.odds2).replace(".", ",");
+
+    const out = (it.outcome && String(it.outcome).trim() !== "") ? String(it.outcome).trim() : "N/A";
+    $("m_outcome").value = out;
+
+    recomputeProfitUI();
+    showModal();
+
+    if(deleteOnly) setTimeout(confirmDelete, 50);
+  }
+
+  function payload(){
+    return {
+      row: String(currentRow),
+      desc: $("m_desc").value.trim(),
+      book1: $("m_book1").value,
+      bet1: $("m_bet1").value.trim(),
+      odds1: $("m_odds1").value.trim(),
+      book2: $("m_book2").value,
+      bet2: $("m_bet2").value.trim(),
+      odds2: $("m_odds2").value.trim(),
+      outcome: $("m_outcome").value
+    };
+  }
+
+  async function confirmSave(){
+    if(!currentRow) return;
+    const p = payload();
+
+    const msg =
+      `Confirm UPDATE (row ${p.row})?\n\n` +
+      `Desc: ${p.desc}\n` +
+      `Book1: ${p.book1} | Bet1: ${p.bet1} | Odds1: ${p.odds1}\n` +
+      `Book2: ${p.book2} | Bet2: ${p.bet2} | Odds2: ${p.odds2}\n` +
+      `Outcome: ${p.outcome}\n\n` +
+      `No undo. Continue?`;
+
+    if(!confirm(msg)) return;
+
+    try{
+      const qs = new URLSearchParams({ action:"updateArb", ...p }).toString();
+      const res = await jsonp(URL + "?" + qs);
+      if(res?.error){ alert("Update failed: " + res.error); return; }
+
+      hideModal();
+      await fetchAll(true);
+    }catch(e){
+      alert("Update failed: " + e.message);
+    }
+  }
+
+  async function confirmDelete(){
+    if(!currentRow) return;
+    const it = cacheByRow.get(currentRow);
+
+    const msg =
+      `Confirm DELETE (clear A:O) row ${currentRow}?\n\n` +
+      `${it?.desc || ""}\n` +
+      `${toLocalDateStr(it?.date)}\n\n` +
+      `No undo. Delete?`;
+
+    if(!confirm(msg)) return;
+
+    try{
+      const qs = new URLSearchParams({ action:"deleteArb", row:String(currentRow) }).toString();
+      const res = await jsonp(URL + "?" + qs);
+      if(res?.error){ alert("Delete failed: " + res.error); return; }
+
+      hideModal();
+      await fetchAll(true);
+    }catch(e){
+      alert("Delete failed: " + e.message);
+    }
+  }
+
+  // init
+  fillSelect($("m_book1"));
+  fillSelect($("m_book2"));
+  fillSelect($("m_outcome"), true);
+  initSearchUI();
+  fetchAll(true).catch(err => $("status").textContent = "Failed: " + err.message);
+</script>
+</body>
+</html>

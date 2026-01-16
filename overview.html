@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arbitrage Tracker — Overview</title>
+  <base target="_top">
+  <link rel="icon" type="image/jpeg" href="https://i.pinimg.com/736x/f2/f5/3a/f2f53ae6a0f77dde7f65eceaaa63c8a4.jpg">
+
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --stroke:rgba(255,255,255,.10);
+      --radius:18px;
+      --shadow:0 25px 80px rgba(0,0,0,.55);
+      --accent: rgba(148,163,184,.14);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(900px 500px at 15% -10%, rgba(59,130,246,.18), transparent 60%),
+        radial-gradient(700px 420px at 90% 0%, rgba(34,197,94,.16), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:20px;
+    }
+
+    .shell{ width:min(1200px, 100%); margin:0 auto; }
+    .topnav{
+      position:sticky;
+      top:14px;
+      z-index:200;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid var(--stroke);
+      background: rgba(2,6,23,.55);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      margin-bottom:16px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:1000;
+      letter-spacing:.2px;
+      margin-right:auto;
+      white-space:nowrap;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: linear-gradient(90deg, rgba(34,197,94,.95), rgba(59,130,246,.90));
+      box-shadow: 0 0 20px rgba(59,130,246,.25);
+    }
+    .navlinks{ display:flex; gap:8px; flex-wrap:wrap; }
+    .navbtn{
+      text-decoration:none;
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:900;
+      font-size:13px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .navbtn.active{
+      background: linear-gradient(90deg, rgba(34,197,94,.35), rgba(59,130,246,.30));
+      border-color: rgba(255,255,255,.18);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:16px;
+      align-items:start;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .header{
+      padding:18px 18px 12px;
+      border-bottom:1px solid var(--stroke);
+      background: rgba(255,255,255,.03);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    h1{ margin:0; font-size:18px; }
+    .content{ padding:16px 18px 18px; }
+
+    .btnSmall{
+      text-decoration:none;
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight:1000;
+      font-size:13px;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+    }
+
+    .search{ display:flex; gap:10px; margin-bottom:12px; }
+    input{
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(2,6,23,.55);
+      color: var(--text);
+      outline:none;
+    }
+    input:focus{
+      border-color: rgba(99,102,241,.55);
+      box-shadow: 0 0 0 3px rgba(99,102,241,.18);
+    }
+
+    .list{ display:grid; gap:10px; }
+    .bookItem{
+      position:relative;
+      overflow:hidden;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(2,6,23,.38);
+      padding:12px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      transition: .12s ease;
+    }
+    .bookItem::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(520px 180px at 20% 0%, var(--accent, rgba(99,102,241,.16)), transparent 60%);
+      opacity:.95;
+      pointer-events:none;
+    }
+    .bookItem > *{ position:relative; }
+    .bookItem:hover{ transform: translateY(-1px); }
+    .bookItem.active{
+      border-color: rgba(255,255,255,.18);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.06) inset;
+    }
+    .bookItem.low{
+      opacity: .68;
+      filter: saturate(.85) brightness(.85);
+    }
+
+    .logo{
+      width:26px;height:26px;border-radius:8px;
+      object-fit:contain;
+      background: rgba(255,255,255,.06);
+      padding:3px;
+      flex:0 0 auto;
+    }
+    .bName{ font-weight:1000; }
+    .mini{
+      margin-left:auto;
+      font-variant-numeric: tabular-nums;
+      color:#e5e7eb;
+      font-weight:1100;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      padding:6px 10px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+
+    .statsTop{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .stat{
+      position:relative;
+      overflow:hidden;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(2,6,23,.35);
+      padding:14px;
+    }
+    .stat::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(560px 210px at 20% 0%, var(--saccent, rgba(59,130,246,.18)), transparent 60%);
+      opacity:.95;
+      pointer-events:none;
+    }
+    .stat > *{ position:relative; }
+    .stat .k{
+      color:#cbd5e1;
+      font-size:12px;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+    }
+    .stat .v{
+      margin-top:10px;
+      font-size:28px;
+      font-weight:1100;
+      font-variant-numeric: tabular-nums;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .detailsWrap{
+      position:relative;
+      overflow:hidden;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(2,6,23,.35);
+      padding:14px;
+    }
+    .detailsWrap::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(820px 260px at 18% 0%, var(--accent, rgba(99,102,241,.18)), transparent 62%);
+      opacity:.95;
+      pointer-events:none;
+    }
+    .detailsWrap::after{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius:18px;
+      pointer-events:none;
+      box-shadow: 0 0 60px var(--accent, rgba(99,102,241,.28));
+      opacity:.45;
+    }
+    .detailsWrap > *{ position:relative; }
+
+    .detailHeader{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .detailHeader .name{
+      font-size:18px;
+      font-weight:1100;
+    }
+    .badge{
+      margin-left:auto;
+      font-weight:1100;
+      font-variant-numeric: tabular-nums;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      white-space:nowrap;
+    }
+
+    .kvGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+    .kv{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      padding:12px;
+    }
+    .kv .k{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:8px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    .kv .v{
+      font-weight:1000;
+      font-size:16px;
+      font-variant-numeric: tabular-nums;
+      color:#e5e7eb;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .kv .v.boldMoney{ font-weight:1100; }
+
+    .status{ color:var(--muted); font-size:13px; margin-top:10px; }
+
+    @media (max-width: 980px){
+      body{ padding:16px; }
+      .topnav{ top:10px; }
+      .grid{ grid-template-columns: 1fr; }
+      .statsTop{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+   <div class="topnav">
+  <div class="brand"><span class="dot"></span> Arbitrage Tracker</div>
+  <div class="navlinks">
+            <a class="navbtn" href="<?= baseUrl ?>?page=dashboard">Dashboard</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=newbet">New Bet</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=history">History</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=overview">Overview</a>
+            <a class="navbtn" href="<?= baseUrl ?>?page=calendar">Calendar</a>
+  </div>
+  <script>
+  (function(){
+    const current = "<?= page ?>"; // injecté par Apps Script
+    document.querySelectorAll(".navbtn").forEach(a => a.classList.remove("active"));
+    const map = {
+      newbet: 'a[href*="page=newbet"]',
+      history: 'a[href*="page=history"]',
+      overview: 'a[href*="page=overview"]',
+      calendar: 'a[href*="page=calendar"]'
+    };
+    const el = document.querySelector(map[current] || map.overview);
+    if(el) el.classList.add("active");
+  })();
+</script>
+</div>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="card">
+        <div class="header">
+          <div><h1>Bookmakers</h1></div>
+          <a class="btnSmall" href="#" onclick="loadOverview();return false;">Refresh</a>
+        </div>
+        <div class="content">
+          <div class="search">
+            <input id="q" placeholder="Search book..." oninput="renderList()" />
+          </div>
+          <div id="list" class="list"></div>
+          <div id="leftStatus" class="status">Ready.</div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card">
+        <div class="header">
+          <div><h1>Overview</h1></div>
+        </div>
+
+        <div class="content">
+          <div class="statsTop">
+            <div class="stat" style="--saccent: rgba(59,130,246,.22);">
+              <div class="k">ROI</div>
+              <div class="v" id="roi">—</div>
+            </div>
+            <div class="stat" style="--saccent: rgba(34,197,94,.22);">
+              <div class="k">Profit</div>
+              <div class="v" id="profit">—</div>
+            </div>
+            <div class="stat" style="--saccent: rgba(239,68,68,.18);">
+              <div class="k">Argent dans le scheme</div>
+              <div class="v" id="scheme">—</div>
+            </div>
+          </div>
+
+          <div id="detailsWrap" class="detailsWrap" style="--accent: rgba(148,163,184,.14);">
+            <div class="detailHeader">
+              <img id="dLogo" class="logo" alt="" referrerpolicy="no-referrer" />
+              <div class="name" id="dName">Select a bookmaker</div>
+              <div class="badge" id="dBalance">Balance: —</div>
+            </div>
+            <div id="kvGrid" class="kvGrid"></div>
+          </div>
+
+          <div id="rightStatus" class="status">—</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script>
+  const OVERVIEW_URL = "https://script.google.com/macros/s/AKfycbxpOVJVBjxA1WmFSvqXZs7PYp04zd5pXYSntI2BFDJndEg1yuGrJvXz_OFzaAPP6SMB/exec";
+  const API = OVERVIEW_URL + "?action=getOverview";
+
+  const BOOK_META = {
+    "Stake": { accent:"rgba(37,99,235,.28)", logo:"https://getesports.net/wp-content/uploads/sites/21169/2025/05/stake-logo.png" },
+    "Betsson": { accent:"rgba(249,115,22,.16)", logo:"https://play-lh.googleusercontent.com/8C8pB8E4jrYaQ4erIcquFLzGA7J98mvJxNVklC9B-BGN1zW_BVYWa9VdWzJqrtOaEkps" },
+    "ETHAN-BET365": { accent:"rgba(34,197,94,.24)", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Bet365_Logo.svg/2560px-Bet365_Logo.svg.png" },
+    "Coolbet": { accent:"rgba(168,85,247,.26)", logo:"https://images.squarespace-cdn.com/content/v1/52000104e4b08f2e358d94a9/1625452239841-S386IV6PRDBAF1A4J2OA/coolbet" },
+    "LeoVegas": { accent:"rgba(249,115,22,.24)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/54c5ac3b0000ff00057cfb87/0x0.png" },
+    "Pinnacle": { accent:"rgba(245,158,11,.24)", logo:"https://upload.wikimedia.org/wikipedia/en/7/72/Pinnacle_Logo.jpeg" },
+    "SportInteraction": { accent:"rgba(251,113,133,.24)", logo:"https://play-lh.googleusercontent.com/oiHxBwvYz38cyaW4hyDU61FhBUmUpnm6uHo-qtOAvBGCRtyqZr-3mZrbdLjfrlHe9Ms" },
+    "Betway": { accent:"rgba(120,113,108,.24)", logo:"https://upload.wikimedia.org/wikipedia/commons/9/95/Betway_logo.jpg" },
+    "Bet99": { accent:"rgba(21,128,61,.24)", logo:"https://s3-eu-west-1.amazonaws.com/tpd/logos/616481a7f37ebd001dabc165/0x0.png" }
+  };
+
+  const $ = (id)=>document.getElementById(id);
+  let rows = [];
+  let headers = [];
+  let selectedBook = null;
+
+  function jsonp(url){
+    return new Promise((resolve, reject)=>{
+      const cb = "cb_" + Math.random().toString(36).slice(2);
+      window[cb] = (data)=>{
+        delete window[cb];
+        script.remove();
+        resolve(data);
+      };
+      const script = document.createElement("script");
+      script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+      script.onerror = () => {
+        delete window[cb];
+        script.remove();
+        reject(new Error("JSONP load failed"));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  function stripDiacritics(s){
+    return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  }
+
+  function normalizeKey(s){
+    return stripDiacritics(String(s || "").trim().toLowerCase().replace(/\s+/g," "));
+  }
+
+  function parseMoneyLoose(v){
+    const s0 = String(v ?? "").trim();
+    if(!s0) return NaN;
+    let s = s0.replace(/[^\d,.\-]/g, "");
+    if (s.includes(",") && !s.includes(".")) s = s.replace(",", ".");
+    if (s.includes(".") && s.includes(",")) s = s.replace(/,/g,"");
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function fmtMoneyAfter(v){
+  const n = (typeof v === "number") ? v : parseMoneyLoose(v);
+  if(!Number.isFinite(n)) return "—";
+
+  // format FR : espace milliers + virgule décimale
+  const parts = n.toFixed(2).split(".");
+  const intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  const decPart = parts[1];
+
+  return intPart + "," + decPart + "$";
+}
+
+  function pickBalanceKey(cols){
+    const keys = Object.keys(cols);
+    return keys.find(k => normalizeKey(k).includes("balance")) ||
+           keys.find(k => normalizeKey(k).includes("bal")) ||
+           null;
+  }
+
+  function isImportantMoneyKey(key){
+    const k = normalizeKey(key);
+    return (
+      k.includes("balance") || k.includes("bal") ||
+      k.includes("depot") || k.includes("depots") || k.includes("deposit") ||
+      k.includes("retrait") || k.includes("withdraw") ||
+      k.includes("wager") ||
+      k.includes("profit") ||
+      k.includes("scheme") || k.includes("bankroll") || k.includes("argent")
+    );
+  }
+
+  function renderList(){
+    const q = $("q").value.trim().toLowerCase();
+    const list = $("list");
+    list.innerHTML = "";
+
+    const filtered = rows.filter(r => r.book.toLowerCase().includes(q));
+
+    filtered.forEach(r=>{
+      const meta = BOOK_META[r.book] || { accent:"rgba(148,163,184,.14)", logo:"" };
+
+      const balKey = pickBalanceKey(r.cols);
+      const balVal = balKey ? r.cols[balKey] : "";
+      const balNum = parseMoneyLoose(balVal);
+      const isLow = (!Number.isFinite(balNum)) || (balNum < 5);
+
+      const el = document.createElement("div");
+      el.className = "bookItem" + (selectedBook === r.book ? " active" : "");
+      if (isLow) el.classList.add("low");
+      el.style.setProperty("--accent", meta.accent);
+
+      const img = document.createElement("img");
+      img.className = "logo";
+      img.alt = "";
+      img.referrerPolicy = "no-referrer";
+      if(meta.logo){ img.src = meta.logo; } else { img.style.display="none"; }
+
+      const name = document.createElement("div");
+      name.className = "bName";
+      name.textContent = r.book;
+
+      const mini = document.createElement("div");
+      mini.className = "mini";
+      mini.textContent = `Bal: ${fmtMoneyAfter(balVal)}`;
+
+      el.append(img, name, mini);
+      el.onclick = ()=> selectBook(r.book);
+
+      list.appendChild(el);
+    });
+
+    $("leftStatus").textContent = `Books: ${filtered.length}`;
+  }
+
+  function selectBook(book){
+    selectedBook = book;
+    const r = rows.find(x => x.book === book);
+    if(!r) return;
+
+    const meta = BOOK_META[book] || { accent:"rgba(148,163,184,.14)", logo:"" };
+
+    $("detailsWrap").style.setProperty("--accent", meta.accent);
+    $("dName").textContent = book;
+
+    if(meta.logo){
+      $("dLogo").style.display = "block";
+      $("dLogo").src = meta.logo;
+    } else {
+      $("dLogo").style.display = "none";
+      $("dLogo").removeAttribute("src");
+    }
+
+    const balKey = pickBalanceKey(r.cols);
+    const balVal = balKey ? r.cols[balKey] : "";
+    $("dBalance").textContent = `Balance: ${fmtMoneyAfter(balVal)}`;
+
+    const kv = $("kvGrid");
+    kv.innerHTML = "";
+
+    Object.entries(r.cols).forEach(([k,v])=>{
+      if(!String(k).trim()) return;
+      if(normalizeKey(k).includes("book")) return;
+
+      const isMoney = isImportantMoneyKey(k);
+
+      const card = document.createElement("div");
+      card.className = "kv";
+
+      const kk = document.createElement("div");
+      kk.className = "k";
+      kk.textContent = k;
+
+      const vv = document.createElement("div");
+      vv.className = "v";
+      if (isMoney) vv.classList.add("boldMoney");
+
+      if (v === "" || v === null || v === undefined) {
+        vv.textContent = "—";
+      } else {
+        vv.textContent = isMoney ? fmtMoneyAfter(v) : String(v);
+      }
+
+      card.append(kk, vv);
+      kv.appendChild(card);
+    });
+
+    renderList();
+    $("rightStatus").textContent = "Ready.";
+  }
+
+  async function loadOverview(){
+    $("leftStatus").textContent = "Loading…";
+    $("rightStatus").textContent = "Loading…";
+    try{
+      const data = await jsonp(API);
+
+      if(data && data.error){
+        $("leftStatus").textContent = "Error: " + data.error;
+        $("rightStatus").textContent = "Error: " + data.error;
+        return;
+      }
+
+      $("roi").textContent = data?.stats?.roi ?? "—";
+      $("profit").textContent = fmtMoneyAfter(data?.stats?.profit);
+      $("scheme").textContent = fmtMoneyAfter(data?.stats?.scheme);
+
+      const values = data?.table?.values || [];
+      if(values.length < 2){
+        rows = [];
+        headers = [];
+        renderList();
+        $("leftStatus").textContent = "No table data.";
+        return;
+      }
+
+      headers = values[0].map(x => String(x || "").trim());
+      const bodyRows = values.slice(1);
+
+      let bookIdx = headers.findIndex(h => normalizeKey(h).includes("book"));
+      if(bookIdx < 0) bookIdx = 0;
+
+      rows = bodyRows
+        .map(r => {
+          const book = String(r[bookIdx] || "").trim();
+          const cols = {};
+          headers.forEach((h, i)=>{ cols[h] = (r[i] ?? ""); });
+          return { book, cols };
+        })
+        .filter(x => x.book);
+
+      rows.sort((a,b)=>{
+        const ak = pickBalanceKey(a.cols);
+        const bk = pickBalanceKey(b.cols);
+        const na = ak ? parseMoneyLoose(a.cols[ak]) : NaN;
+        const nb = bk ? parseMoneyLoose(b.cols[bk]) : NaN;
+        if(!Number.isFinite(na) && !Number.isFinite(nb)) return a.book.localeCompare(b.book);
+        if(!Number.isFinite(na)) return 1;
+        if(!Number.isFinite(nb)) return -1;
+        return nb - na;
+      });
+
+      renderList();
+
+      if(!selectedBook && rows.length){
+        selectBook(rows[0].book);
+      } else if(selectedBook){
+        selectBook(selectedBook);
+      }
+
+      $("leftStatus").textContent = `Books: ${rows.length}`;
+      $("rightStatus").textContent = "Ready.";
+    }catch(e){
+      console.error(e);
+      $("leftStatus").textContent = "Failed: " + e.message;
+      $("rightStatus").textContent = "Failed: " + e.message;
+    }
+  }
+
+  loadOverview();
+</script>
+</body>
+</html>
